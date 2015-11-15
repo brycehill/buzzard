@@ -1,0 +1,14 @@
+html
+  head
+    title!= title
+    script(src='/socket.io/socket.io.js')
+    body
+      h1!= message
+      form#word-form
+        input(id='word',type='text', name='word')
+        input(type='submit', value='Add')
+      h2 Words
+      ul#word-list
+        each word in words
+          li(data-id=word.word) #{word.word} (#{word.count})
+    script(src='./js/main.js')

@@ -1,0 +1,37 @@
+{
+  "name": "buzzard",
+  "version": "1.0.0",
+  "description": "A Buzzword tracker",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brycehill/buzzard.git"
+  },
+  "keywords": [
+    "buzzwords",
+    "business",
+    "numbers",
+    "efficiency"
+  ],
+  "author": "Bryce Hill <bryceahill@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brycehill/buzzard/issues"
+  },
+  "homepage": "https://github.com/brycehill/buzzard#readme",
+  "dependencies": {
+    "express": "^4.13.3",
+    "jade": "^1.11.0",
+    "rethinkdb": "^2.2.0",
+    "socket.io": "^1.3.7",
+    "standard": "^5.3.1"
+  },
+  "devDependencies": {
+    "eslint-config-standard": "^4.4.0",
+    "eslint-plugin-standard": "^1.3.1",
+    "nodemon": "^1.8.1"
+  }
+}
