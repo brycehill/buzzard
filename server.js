@@ -3,13 +3,15 @@ var app = express()
 var http = require('http').Server(app)
 var io = require('socket.io')(http)
 var r = require('rethinkdb')
+var words = require('./models/words')
 
-var connection = null;
-r.connect( { db: 'buzzard', host: 'localhost', port: 28015}, function(err, conn) {
-  if (err) throw err
-  connection = conn
+app.use(express.static('public'))
+app.set('views', './views')
+app.set('view engine', 'jade')
 
-  r.table('words').changes().run(connection, function(err, cursor) {
+require('./db.js').connect.then( (c) => {
+  // @todo move this out
+  r.table('words').changes().run(c, function(err, cursor) {
     cursor.each(function(err, changes) {
       if (!changes.old_val) {
         io.emit('word added', changes.new_val)
@@ -20,15 +22,8 @@ r.connect( { db: 'buzzard', host: 'localhost', port: 28015}, function(err, conn)
   })
 })
 
-app.use(express.static('public'))
-app.set('views', './views')
-app.set('view engine', 'jade')
-
 app.get('/', function (req, res) {
-  var words = []
-
-  r.table('words')
-    .run(connection)
+  words.getAll(r.desc('updated'))
     .then(function(cursor) {
       cursor.toArray()
         .then(function(result) {
@@ -39,20 +34,18 @@ app.get('/', function (req, res) {
 
 io.on('connection', function(socket) {
   socket.on('word added', function(data) {
-    var table = r.table('words');
-    table.getAll(data.word, { index: 'word' })
-      .run(connection)
-      .then(function(words) {
-        words.toArray().then(function(words) {
+    words.get(data.word)
+      .then(function(cursor) {
+        cursor.toArray().then(function(res) {
           var word = {}
-          if (!words.length) {
-              word = { word: data.word, count: 1 }
-              table.insert(word)
-                .run(connection)
+          if (!res.length) {
+              word = { word: data.word, count: 1, updated: new Date() }
+              words.insert(word)
             } else {
-              word = words[0]
+              word = res[0]
               word.count++
-              table.update(word).run(connection)
+              word.updated = new Date()
+              words.update(word)
             }
         })
       })
