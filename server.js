@@ -8,6 +8,16 @@ var connection = null;
 r.connect( { db: 'buzzard', host: 'localhost', port: 28015}, function(err, conn) {
   if (err) throw err
   connection = conn
+
+  r.table('words').changes().run(connection, function(err, cursor) {
+    cursor.each(function(err, changes) {
+      if (!changes.old_val) {
+        io.emit('word added', changes.new_val)
+      } else {
+        io.emit('word updated', changes.new_val)
+      }
+    })
+  })
 })
 
 app.use(express.static('public'))
@@ -36,24 +46,19 @@ io.on('connection', function(socket) {
         words.toArray().then(function(words) {
           var word = {}
           if (!words.length) {
-              word = { word: data.word, count: 0 }
+              word = { word: data.word, count: 1 }
               table.insert(word)
                 .run(connection)
-                .then(function(res) {
-                  io.emit('word added', word)
-                })
             } else {
               word = words[0]
               word.count++
               table.update(word).run(connection)
-                .then(function(res) {
-                  io.emit('word updated', word)
-                })
             }
         })
       })
   })
 })
+
 
 http.listen(3000, function(){
   console.log('listening on *:3000')
